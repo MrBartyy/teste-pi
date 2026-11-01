@@ -8,13 +8,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const formatarMoeda = (valor) => valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-    // ==========================================
-    // MÓDULO DE EDIÇÃO DO ORÇAMENTO
-    // ==========================================
     const btnEditarOrcamento = document.querySelector(".edit-bg");
     const spanOrcamentoValor = document.getElementById("orcamento-valor");
     const formOrcamento = document.getElementById("formOrcamento");
     const inputNovoOrcamento = document.getElementById("novoOrcamento");
+
+    // ==========================================
+    // FUNÇÃO PARA COMPARAR E MUDAR A COR DO BADGE
+    // ==========================================
+    function verificarOrcamento() {
+        const textoOrcamento = spanOrcamentoValor.textContent;
+        const valorOrcamento = Number(textoOrcamento.replace(/[^\d,]/g, "").replace(",", ".")) || 0;
+
+        const textoCarrinho = totalCarrinho.textContent;
+        const valorCarrinho = Number(textoCarrinho.replace(/[^\d,]/g, "").replace(",", ".")) || 0;
+
+        // Se o orçamento for menor que o valor total da compra, fica vermelho (#ff0000)
+        if (valorOrcamento < valorCarrinho) {
+            totalCarrinho.style.backgroundColor = "#ff0000";
+        } else {
+            totalCarrinho.style.backgroundColor = "#11b30b"; // Volta para a cor padrão (verde)
+        }
+    }
 
     if (btnEditarOrcamento) {
         btnEditarOrcamento.addEventListener("click", () => {
@@ -39,11 +54,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("O orçamento não pode ser negativo.");
                 return;
             }
-
-            // Atualiza o valor na tela
+            
             spanOrcamentoValor.textContent = formatarMoeda(novoValor);
 
-            // Fecha o modal corretamente via jQuery do Bootstrap
+            verificarOrcamento();
+
             if (window.jQuery) {
                 window.jQuery("#modalOrcamento").modal("hide");
             }
@@ -53,8 +68,10 @@ document.addEventListener("DOMContentLoaded", () => {
             window.jQuery("#modalOrcamento").on("shown.bs.modal", () => inputNovoOrcamento.focus());
         }
     }
-    // ==========================================
 
+    // ==========================================
+    // CONTROLES DO MODAL DE PRODUTO
+    // ==========================================
     function atualizarTotalModal() {
         const preco = Number(valorInput.value) || 0;
         const qtd = Number(quantidadeInput.value) || 1;
@@ -79,7 +96,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function calcularTotalItem(linha) {
         const preco = Number(linha.dataset.preco) || 0;
-        const qtd = Number(linha.querySelector(".input-qtd").value) || 1;
+        const inputQtdEl = linha.querySelector(".input-qtd");
+        // Remove tudo que não é número (ex: remove o 'x' do '2x')
+        const qtd = Number(inputQtdEl.value.replace(/[^\d]/g, "")) || 1;
         return preco * qtd;
     }
 
@@ -93,6 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         totalCarrinho.textContent = formatarMoeda(totalGeral);
+        verificarOrcamento();
     }
 
     // Inicializa valores da lista existente no HTML
@@ -171,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!linha) return;
 
         const inputQtd = linha.querySelector(".input-qtd");
-        let qtd = parseInt(inputQtd.value) || 1;
+        let qtd = parseInt(inputQtd.value.replace(/[^\d]/g, "")) || 1;
 
         if (botao.classList.contains("btn-mais")) {
             qtd++;
@@ -205,4 +225,4 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.jQuery) {
         window.jQuery("#modalProduto").on("shown.bs.modal", () => nomeInput.focus());
     }
-});E
+});
